@@ -125,6 +125,13 @@ body { font-family: "Rubik", ui-sans-serif, system-ui, sans-serif; }
 }
 /* Replays (M3): our replay links play in the client; the offline HTML download needs upstream's embed script, so it's hidden. */
 .replayDownloadButton { display: none !important; }
+/* M4 wallet box (options popup and the name popup). */
+.dx-wallet h3 { margin: 6px 0 4px; font-size: 13px; }
+.dx-wallet p { margin: 4px 0 8px; }
+.dx-wallet code { font-family: ui-monospace, "JetBrains Mono", monospace; background: var(--dx-page); border: 1px solid var(--dx-line); padding: 1px 5px; border-radius: 3px; }
+.dx-wallet-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.dx-wallet-buttons .button { min-height: 32px; padding: 4px 12px; text-decoration: none; display: inline-flex; align-items: center; }
+.dx-wallet-done { color: #1d7a46; font-weight: 600; }
 `;
 
 function indexHtml() {

@@ -12,6 +12,7 @@ import { type BattleRoom } from "./panel-battle";
 import { ChatUserList, PSTextarea, type ChatRoom } from "./panel-chat";
 import { PSRoomPanel, PSPanelWrapper, PSView } from "./panels";
 import { PSHeader } from "./panel-topbar";
+import { DX, type DXMe, type DXWallet } from "./dx";
 
 const WARNING_SECONDS = 5;
 // a function because it's evaluated before translations have loaded
@@ -597,6 +598,96 @@ class VolumePanel extends PSRoomPanel {
 	}
 }
 
+
+/**
+ * Duel Exchange (M4): the wallet box. "link" mode sits in the account options: link a Solana wallet to this player
+ * so the weekly prize can be paid to it. "signin" mode sits in the name popup: restore a player on a new device.
+ * Either way the wallet only signs a plain message: no transaction, no SOL.
+ */
+class DXWalletBox extends preact.Component<{ mode: 'link' | 'signin' }> {
+	declare state: { me?: DXMe | null, busy?: string, error?: string, done?: string, pick?: boolean };
+	override componentDidMount() {
+		if (this.props.mode === 'link') this.load();
+	}
+	load() {
+		if (!DX.account()) { this.setState({ me: null }); return; }
+		void DX.me().then(r => this.setState('error' in r ? { me: null } : { me: r }));
+	}
+	go = async (w: DXWallet) => {
+		this.setState({ busy: w.name, error: '', done: '', pick: false });
+		if (this.props.mode === 'link') {
+			const r = await DX.linkWallet(w);
+			if ('error' in r) return this.setState({ busy: '', error: r.error });
+			this.setState({ busy: '', me: r, done: 'Wallet linked. Weekly prizes for this player go to it.' });
+		} else {
+			const r = await DX.signInWithWallet(w);
+			if (r.error || !r.account) return this.setState({ busy: '', error: r.error });
+			this.setState({ busy: '', done: `Signed in as ${r.account.name}.` });
+			PS.user.changeName(r.account.name);
+		}
+	};
+	unlink = async () => {
+		this.setState({ busy: 'unlink', error: '', done: '' });
+		const r = await DX.unlinkWallet();
+		if ('error' in r) return this.setState({ busy: '', error: r.error });
+		this.setState({ busy: '', me: r, done: 'Wallet unlinked. This player is not eligible for prizes until a wallet is linked.' });
+	};
+	walletButtons() {
+		const all = DX.wallets();
+		const found = all.filter(w => w.provider);
+		if (found.length) {
+			return <p class="dx-wallet-buttons">{found.map(w => <button
+				class="button" disabled={!!this.state.busy} onClick={() => void this.go(w)}
+			>{this.state.busy === w.name ? `Check ${w.name}…` : w.name}</button>)}</p>;
+		}
+		if (DX.isPhone()) {
+			return <>
+				<p><small>No wallet in this browser. Open this page inside your wallet app:</small></p>
+				<p class="dx-wallet-buttons">{all.filter(w => w.open).map(w => <a class="button" href={w.open}>Open in {w.name}</a>)}</p>
+			</>;
+		}
+		return <p><small>
+			No Solana wallet found in this browser. Install {all.map((w, i) => <>{i ? (i === all.length - 1 ? ' or ' : ', ') : ''}<a href={w.site} target="_blank" rel="noopener noreferrer">{w.name}</a></>)}, then reload.
+		</small></p>;
+	}
+	override render() {
+		const { me, error, done } = this.state;
+		const msgs = <>
+			{error && <p class="error">{error}</p>}
+			{done && <p class="dx-wallet-done">{done}</p>}
+		</>;
+		if (this.props.mode === 'signin') {
+			return <div class="dx-wallet">
+				<h3>Already play on another device?</h3>
+				<p><small>Sign in with the wallet you linked. It signs a message, not a transaction: no SOL moves.</small></p>
+				{this.state.pick ? this.walletButtons() :
+					<p><button type="button" class="button" onClick={() => this.setState({ pick: true })}>Sign in with wallet</button></p>}
+				{msgs}
+			</div>;
+		}
+		if (me === undefined) return <div class="dx-wallet"><h3>Wallet</h3><p><small>Loading…</small></p></div>;
+		if (me === null) return <div class="dx-wallet"><h3>Wallet</h3><p><small>Pick a player name first (top right), then link a wallet here to be paid weekly prizes.</small></p></div>;
+		const changeAfter = me.walletChangeAfter ? new Date(me.walletChangeAfter) : null;
+		const when = changeAfter ? `${changeAfter.toISOString().slice(0, 16).replace('T', ' ')} UTC` : '';
+		return <div class="dx-wallet">
+			<h3>Wallet</h3>
+			{me.wallet ? <>
+				<p>Linked: <code title={me.wallet}>{DX.shortWallet(me.wallet)}</code></p>
+				<p><small>Weekly prizes for <strong>{me.name}</strong> go to this wallet: the one linked when the week closes (Monday 00:00 UTC).</small></p>
+				{changeAfter ? <p><small>You can switch or unlink it after {when} (once every 7 days).</small></p> : <>
+					<p><small>Switch to another wallet:</small></p>
+					{this.walletButtons()}
+					<p><button class="button" disabled={!!this.state.busy} onClick={() => void this.unlink()}>Unlink wallet</button></p>
+				</>}
+			</> : <>
+				<p><small>Rated games only need your player name. To be <strong>paid</strong> a weekly prize, link a Solana wallet. It signs a message, not a transaction: no SOL moves, nothing is approved.</small></p>
+				{changeAfter ? <p><small>You unlinked a wallet recently. You can link one after {when}.</small></p> : this.walletButtons()}
+			</>}
+			{msgs}
+		</div>;
+	}
+}
+
 class OptionsPanel extends PSRoomPanel {
 	static readonly id = 'options';
 	static readonly routes = ['options'];
@@ -731,9 +822,9 @@ class OptionsPanel extends PSRoomPanel {
 				<button class="button" data-href="avatars">{TL`[Avatar...]`}</button>
 			</p>
 
-			{PS.user.named && (PS.user.registered?.userid === PS.user.userid ?
-				<button className="button" data-href="changepassword">{TL`[Password...]`}</button> :
-				<button className="button" data-href="register">{TL`[Register]`}</button>)}
+			{/* Duel Exchange: no passwords or login server; a wallet links by signature (M4). */}
+			<hr />
+			<DXWalletBox mode="link" />
 
 			<hr />
 			<h3>{TL`General`}</h3>
@@ -1042,6 +1133,7 @@ class LoginPanel extends PSRoomPanel {
 					</p>
 				</div>}
 			</form>
+			{!PS.user.named && !PS.user.loggingIn && <><hr /><DXWalletBox mode="signin" /></>}
 		</div></PSPanelWrapper>;
 	}
 }

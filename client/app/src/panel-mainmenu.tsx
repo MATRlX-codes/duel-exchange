@@ -765,7 +765,7 @@ class MainMenuPanel extends PSRoomPanel<MainMenuRoom> {
 						<p>Rated games count for the ladder. The weekly board and payouts live on the site.</p>
 						<p><a class="button" href="https://duel-exchange.vercel.app/board" target="_blank" rel="noopener">Weekly board</a> {}
 							<a class="button" href="https://duel-exchange.vercel.app/rules" target="_blank" rel="noopener">Rules</a></p>
-						<p class="dx-note">Your name and login are kept on this device only.</p>
+						<p class="dx-note">Your login is kept on this device. To be paid prizes or play on another device, link a Solana wallet in Options (the gear, top right).</p>
 					</div>
 				</div>
 				<div class="mainmenu-footer">

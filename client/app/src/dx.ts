@@ -9,6 +9,18 @@ const KEY = 'dx_account';
 export const DXConfig: any = (window as any).Config;
 
 export interface DXAccount { name: string; token: string }
+export interface DXWallet { id: string; name: string; provider: any; open: string; site: string }
+export interface DXMe { name: string; createdAt: string; wallet: string | null; walletLinkedAt: string | null; walletChangeAfter: string | null }
+
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function base58(b: Uint8Array) {
+	let n = BigInt(0);
+	for (const x of b) n = n * BigInt(256) + BigInt(x);
+	let s = '';
+	while (n > BigInt(0)) { s = B58[Number(n % BigInt(58))] + s; n = n / BigInt(58); }
+	for (const x of b) { if (x !== 0) break; s = '1' + s; }
+	return s;
+}
 
 export const DX = {
 	account(): DXAccount | null {
@@ -43,6 +55,102 @@ export const DX = {
 		} catch {
 			return { error: "Couldn't reach the server. Try again." };
 		}
+	},
+
+	// ------------------------------------------------------------ wallets (M4)
+	// The wallet signs a plain text message (no transaction, no SOL). Injected providers only: Phantom, Solflare and
+	// Backpack all expose connect() + signMessage(bytes); in their in-app browsers on phones too.
+
+	/** Wallets this browser has (detected), and every one we support (for install / open-in-app links). */
+	wallets(): DXWallet[] {
+		const w = window as any;
+		const here = encodeURIComponent(location.href);
+		const ref = encodeURIComponent(location.origin);
+		const list: DXWallet[] = [
+			{ id: 'phantom', name: 'Phantom', provider: w.phantom?.solana?.isPhantom ? w.phantom.solana : null, open: `https://phantom.app/ul/browse/${here}?ref=${ref}`, site: 'https://phantom.com/' },
+			{ id: 'solflare', name: 'Solflare', provider: w.solflare?.isSolflare ? w.solflare : null, open: `https://solflare.com/ul/v1/browse/${here}?ref=${ref}`, site: 'https://solflare.com/' },
+			{ id: 'backpack', name: 'Backpack', provider: w.backpack?.isBackpack ? w.backpack : (w.backpack?.signMessage ? w.backpack : null), open: '', site: 'https://backpack.app/' },
+		];
+		return list;
+	},
+	isPhone() {
+		return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+	},
+	/** Connects the wallet, asks our server for the message, has the wallet sign it. */
+	async signChallenge(wallet: DXWallet, purpose: 'link' | 'signin', token?: string): Promise<{ nonce: string, signature: string, address: string } | { error: string }> {
+		const p = wallet.provider;
+		if (!p) return { error: `${wallet.name} isn't installed in this browser.` };
+		let address = '';
+		try {
+			const r = await p.connect();
+			address = String((r?.publicKey ?? p.publicKey)?.toString?.() || '');
+		} catch {
+			return { error: `${wallet.name} didn't connect. Try again and approve the connection.` };
+		}
+		if (!address) return { error: `${wallet.name} didn't share an address.` };
+		let n: any;
+		try {
+			const res = await fetch('/api/wallet/nonce', {
+				method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+				body: JSON.stringify({ address, purpose }),
+			});
+			n = await res.json().catch(() => ({}));
+			if (!res.ok) return { error: n.error || `Couldn't start (${res.status}).` };
+		} catch {
+			return { error: "Couldn't reach the server. Try again." };
+		}
+		try {
+			const out = await p.signMessage(new TextEncoder().encode(n.message), 'utf8');
+			const bytes: Uint8Array = out instanceof Uint8Array ? out : out?.signature;
+			if (!bytes || bytes.length !== 64) return { error: `${wallet.name} didn't return a signature.` };
+			return { nonce: n.nonce, signature: base58(bytes), address };
+		} catch {
+			return { error: 'You cancelled the signature. Nothing was linked.' };
+		}
+	},
+	async api(path: string, body?: any, token?: string): Promise<any> {
+		try {
+			const res = await fetch(path, {
+				method: body === undefined ? 'GET' : 'POST',
+				headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+				body: body === undefined ? undefined : JSON.stringify(body),
+			});
+			const data = await res.json().catch(() => ({}));
+			return res.ok ? data : { error: data.error || `Something went wrong (${res.status}).` };
+		} catch {
+			return { error: "Couldn't reach the server. Try again." };
+		}
+	},
+	/** The signed-in player's account (name, wallet, when the wallet can next change). */
+	async me(): Promise<DXMe | { error: string }> {
+		const a = DX.account();
+		if (!a) return { error: 'Not signed in.' };
+		return DX.api('/api/me', undefined, a.token);
+	},
+	async linkWallet(wallet: DXWallet): Promise<DXMe | { error: string }> {
+		const a = DX.account();
+		if (!a) return { error: 'Pick a player name first, then link your wallet.' };
+		const s = await DX.signChallenge(wallet, 'link', a.token);
+		if ('error' in s) return s;
+		return DX.api('/api/wallet/link', { nonce: s.nonce, signature: s.signature }, a.token);
+	},
+	async unlinkWallet(): Promise<DXMe | { error: string }> {
+		const a = DX.account();
+		if (!a) return { error: 'Not signed in.' };
+		return DX.api('/api/wallet/unlink', {}, a.token);
+	},
+	/** New phone or browser: sign with the linked wallet, get this device's own login for that player. */
+	async signInWithWallet(wallet: DXWallet): Promise<{ account?: DXAccount, error?: string }> {
+		const s = await DX.signChallenge(wallet, 'signin');
+		if ('error' in s) return { error: s.error };
+		const r = await DX.api('/api/wallet/signin', { nonce: s.nonce, signature: s.signature });
+		if (r.error || !r.token) return { error: r.error || "Couldn't sign in." };
+		const account = { name: r.name as string, token: r.token as string };
+		DX.saveAccount(account);
+		return { account };
+	},
+	shortWallet(w: string) {
+		return w.length > 12 ? `${w.slice(0, 4)}…${w.slice(-4)}` : w;
 	},
 
 	/** Our server sends the request's creature list as "creatures"; the client reads "pokemon". */
