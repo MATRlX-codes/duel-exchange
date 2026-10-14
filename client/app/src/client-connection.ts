@@ -214,6 +214,7 @@ export class PSConnection {
 		const queue = this.queue;
 		this.queue = [];
 		for (const msg of queue) this.send(msg);
+		for (const msg of (window as any).DXPendingJoins?.splice(0) || []) this.send(msg); // Duel Exchange: see PS.send
 
 		PS.prefs.doAutojoin();
 

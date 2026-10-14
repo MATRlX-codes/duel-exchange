@@ -1298,7 +1298,7 @@ export class ChatTextEntry extends preact.Component<{
 		if (room.connectMode === null && room.id.startsWith('battle-')) {
 			return <div
 				class="chat-log-add hasuserlist" onClick={this.focusIfNoSelection} style={{ left: this.props.left || 0 }}
-			><CopyableURLBox url={`https://psim.us/r/${room.id.slice(7)}`} /></div>;
+			><CopyableURLBox url={`${location.origin}/${room.id}`} /></div>;
 		}
 
 		const canTalk = PS.user.named || room.id === 'dm-';

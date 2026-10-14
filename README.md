@@ -5,6 +5,8 @@ The browser battle client that runs Duel Exchange battles. It is a modified fork
 **AGPLv3** (see `LICENSE`). This repository is the corresponding source for the client served by the Duel Exchange
 game server.
 
+Published at https://github.com/MATRlX-codes/duel-exchange (re-exported with `tools/export-client-source.sh` on every client release).
+
 Duel Exchange is independent and not affiliated with Smogon, Pokémon Showdown, Nintendo, Game Freak or The Pokémon
 Company. All creatures, names and art in this client are Duel Exchange's own.
 

@@ -91,6 +91,40 @@ body { font-family: "Rubik", ui-sans-serif, system-ui, sans-serif; }
 .dx-board { background: #fff; border: 1px solid var(--dx-line); border-radius: 8px; padding: 12px 14px; }
 .dx-board h3 { margin: 0 0 6px; font-size: 16px; color: var(--dx-field); }
 .dx-board p, .dx-board .dx-note { margin: 6px 0; font-size: 13px; line-height: 1.45; color: var(--dx-ink); text-shadow: none; }
+/* Ladders (M3): panels like the rest of the client window, numbers in Rubik with tabular figures. */
+.ladder.pad { max-width: 880px; }
+.ladder.pad > p { margin: 0 0 10px; }
+.ladder .button { background: #fff; color: var(--dx-ink); border: 1px solid var(--dx-line); text-shadow: none; box-shadow: none; font-weight: 500; padding: 5px 10px; }
+.ladder .button:hover { background: #e8eff7; border-color: var(--dx-field); color: var(--dx-field); }
+.ladder .button.dx-outline { color: var(--dx-field); border-color: var(--dx-field); font-weight: 600; }
+.ladder .button.dx-outline:hover { background: var(--dx-field); color: #fff; }
+.ladder .dx-board .button { color: var(--dx-field); border-color: var(--dx-field); font-weight: 600; min-width: 0; }
+.ladder .dx-board .button:hover { background: var(--dx-field); color: #fff; }
+.ladder .search p { margin: 8px 0 0; }
+.ladder .searchinput { border: 1px solid var(--dx-line); border-radius: 6px; padding: 5px 8px; font: inherit; font-size: 14px; color: var(--dx-ink); background: #fff; }
+.ladder .searchinput:focus { outline: 2px solid var(--dx-field); outline-offset: 0; border-color: var(--dx-field); }
+.ladder h3 { margin: 18px 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #6a7a92; }
+.ladder .dx-ladder-help h3 { margin: 0 0 6px; font-size: 16px; letter-spacing: 0; text-transform: none; color: var(--dx-field); }
+.ladder .blocklink { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; padding: 10px 14px !important; background: #fff; border: 1px solid var(--dx-line); border-radius: 8px; color: var(--dx-ink); font-weight: 600; text-decoration: none; }
+.ladder .blocklink::after { content: "Ladder \\203A"; font-size: 12px; font-weight: 600; color: var(--dx-field); }
+.ladder .blocklink:hover { border-color: var(--dx-field); background: #f5f8fc; }
+.ladder .table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border: 1px solid var(--dx-line); border-radius: 8px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.ladder .table th { background: #e8eff7; color: #6a7a92; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border: 0; border-bottom: 1px solid var(--dx-line); }
+.ladder .table th abbr { text-decoration: none; cursor: help; }
+.ladder .table td { padding: 8px 10px; border: 0; border-bottom: 1px solid #dce5f0; font-size: 14px; color: var(--dx-ink); }
+.ladder .table tr:last-child td { border-bottom: 0; }
+.ladder .table tr:hover td { background: #f5f8fc; }
+.ladder .table td:first-child { width: 52px; color: #6a7a92; font-weight: 600; white-space: nowrap; }
+.ladder .table .fa-trophy { color: var(--dx-field) !important; }
+.ladder .table td small { color: #6a7a92; }
+.ladder .table td.dx-empty { padding: 22px 16px; text-align: center; color: #6a7a92; line-height: 1.5; }
+.ladder .table td.dx-empty strong { color: var(--dx-ink); font-size: 15px; }
+@media (max-width: 600px) {
+  .ladder .table th, .ladder .table td { padding: 7px 6px; font-size: 13px; }
+  .ladder .table th:nth-child(5), .ladder .table td:nth-child(5) { display: none; } /* Glicko-1 on phones: Elo, GXE and W-L stay */
+}
+/* Replays (M3): our replay links play in the client; the offline HTML download needs upstream's embed script, so it's hidden. */
+.replayDownloadButton { display: none !important; }
 `;
 
 function indexHtml() {
@@ -162,7 +196,7 @@ export async function buildClient() {
 		outfile: path.join(OUT, "js/dx-client.js"), logLevel: "error",
 		jsxFactory: "preact.h", jsxFragment: "preact.Fragment", loader: { ".tsx": "tsx", ".ts": "ts" },
 		legalComments: "none", define: { global: "window" },
-		banner: { js: "/* Duel Exchange battle client: a fork of an open-source sim client, AGPLv3 (source: game/client in the Duel Exchange repo). */" },
+		banner: { js: "/* Duel Exchange battle client: a fork of an open-source sim client, AGPLv3 (source: https://github.com/MATRlX-codes/duel-exchange). */" },
 		plugins: [{
 			name: "globals",
 			setup(b) {

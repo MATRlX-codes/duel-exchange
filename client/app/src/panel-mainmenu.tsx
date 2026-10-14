@@ -21,11 +21,6 @@ import { Dex, TL, toID, type ID } from "./battle-dex";
 import type { Args } from "./battle-text-parser";
 import { BattleLog } from "./battle-log"; // optional
 import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
 
 export type RoomInfo = {
 	title: string, id?: RoomID, desc?: string, userCount?: number, section?: string, privacy?: 'hidden',
@@ -777,7 +772,7 @@ class MainMenuPanel extends PSRoomPanel<MainMenuRoom> {
 					<small>
 						<a href="https://duel-exchange.vercel.app" target="_blank" rel="noopener">duel-exchange.vercel.app</a> | {}
 						Independent, not affiliated. Not financial advice. | {}
-						Battle client: a fork of an open-source sim client (AGPLv3)
+						Battle client: a fork of an open-source sim client, <a href="https://github.com/MATRlX-codes/duel-exchange" target="_blank" rel="noopener">source (AGPLv3)</a>
 					</small>
 				</div>
 			</div>

@@ -60,6 +60,26 @@ export const DX = {
 		return map[id] || id;
 	},
 
+	/** Our server's ladder (GET /api/ladder/<format>) in the shape the ladder panel reads (upstream's ladder JSON). */
+	ladderJSON(format: string, raw: string): string {
+		const data = JSON.parse(raw || '{}');
+		if (!Array.isArray(data.rows)) throw new Error(data.error || "Couldn't load the ladder.");
+		const id = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+		return JSON.stringify({
+			formatid: format, format,
+			toplist: data.rows.map((r: any) => ({
+				userid: id(r.name), username: r.name, elo: r.elo, gxe: r.gxe, rpr: r.glicko, rprd: r.rd, r: r.glicko, rd: r.rd,
+				w: r.w, l: r.l, t: r.t, sigma: 0, rptime: 0, rpsigma: 0, first_played: null, last_played: null,
+			})),
+		});
+	},
+	/** A saved replay from our server (GET /api/replay/<id>) in the shape the battle panel reads. */
+	replay(data: any) {
+		if (!data?.log) throw new Error('not found');
+		const BattleLog = (window as any).BattleLog;
+		return { players: [data.p1, data.p2], format: String(BattleLog?.formatName ? BattleLog.formatName(data.format) : data.format).replace(/^\[DX\] /, 'DX '), log: data.log };
+	},
+
 	spriteId(species: string) {
 		return String(species || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 	},

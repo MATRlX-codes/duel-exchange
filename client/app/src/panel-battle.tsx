@@ -7,11 +7,6 @@
 
 import preact from "../js/lib/preact";
 import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
 import {
 	PS, PSRoom, type RoomOptions, type RoomID, Config, type BattlePanelLayout,
 } from "./client-main";
@@ -346,9 +341,10 @@ export class BattleRoom extends ChatRoom {
 
 	loadReplay() {
 		const replayid = this.id.slice(7);
-		Net(`https://duel-exchange.vercel.app${replayid}.json`).get().catch(() => '').then(data => {
+		// Duel Exchange: saved replays come from our game server (GET /api/replay/<battle id>).
+		Net(`/api/replay/battle-${replayid}`).get().catch(() => '').then(data => {
 			try {
-				const replay = JSON.parse(data);
+				const replay = DX.replay(JSON.parse(data));
 				const [player1, player2] = replay.players;
 				const players = replay.players.length === 2 ? TL`${player1} vs. ${player2}` : replay.players.join(' vs. ');
 				this.title = `[${replay.format}] ${players}`;
@@ -1361,7 +1357,7 @@ class BattlePanel extends PSRoomPanel<BattleRoom> {
 					<br />
 					<br />
 					<button class="button" data-cmd="/savereplay">
-						<i class="fa fa-upload" aria-hidden></i> {TL`[Upload and share replay]`}
+						<i class="fa fa-upload" aria-hidden></i> {TL`[Save and share replay]`}
 					</button>
 				</span>
 

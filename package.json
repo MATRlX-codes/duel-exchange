@@ -1,5 +1,6 @@
 {
-  "name": "duel-exchange-client",
+  "name": "duel-exchange",
+  "repository": "https://github.com/MATRlX-codes/duel-exchange",
   "private": true,
   "license": "AGPL-3.0-only",
   "description": "Duel Exchange battle client: a modified fork of pokemon-showdown-client.",

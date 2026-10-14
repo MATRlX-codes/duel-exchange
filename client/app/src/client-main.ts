@@ -25,11 +25,6 @@ import { BattleTextParser, type Args } from './battle-text-parser';
 import type { BattleRoom } from './panel-battle';
 import { Teams } from './battle-teams';
 import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
 import type preact from '../js/lib/preact';
 
 export const VERTICAL_HEADER_WIDTH = 240;
@@ -2442,6 +2437,7 @@ export const PS = new class extends PSModel {
 		console.log(`\u25b6\ufe0f ${bracketRoomid}%c${msg}`, "color: #776677");
 		if (!this.connection) {
 			if (msg.startsWith('/cmd ')) return; // Duel Exchange: background queries before the socket opens
+			if (msg.startsWith('/join ')) { ((window as any).DXPendingJoins ||= []).push(`${roomid || ''}|${msg}`); return; } // Duel Exchange: a room opened from the URL (e.g. a replay link) joins once the socket is up
 			PS.alert(TL`You are not connected and cannot send ${msg}.`);
 			return;
 		}

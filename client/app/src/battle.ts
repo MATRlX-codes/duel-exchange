@@ -35,11 +35,6 @@ import { Dex, PSUtils, toID, toUserid, type ID, type ModdedDex } from './battle-
 import { BattleTextParser, type Args, type KWArgs, type SideID } from './battle-text-parser';
 import { Teams } from './battle-teams';
 import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
-import { DX } from './dx';
 declare const app: { user: AnyObject, rooms: AnyObject, ignore?: AnyObject } | undefined;
 
 /** [id, element?, ...misc] */

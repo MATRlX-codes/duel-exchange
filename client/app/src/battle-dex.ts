@@ -28,8 +28,6 @@ import type { Teams } from "./battle-teams";
 import { Config } from "./client-main";
 import { BattleLog } from "./battle-log";
 import { DX } from "./dx";
-import { DX } from "./dx";
-import { DX } from "./dx";
 
 export declare namespace Dex {
 	/* eslint-disable @typescript-eslint/no-shadow */

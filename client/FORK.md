@@ -2,8 +2,9 @@
 
 Upstream: github.com/smogon/pokemon-showdown-client, commit in `UPSTREAM_COMMIT` (cc6f5c2, Oct 6 2026, "Preact
 minor updates batch 51"). Licence: **AGPLv3**, kept in `client/LICENSE`. Everything under `client/` is AGPL (the
-engine and server stay MIT). Our changes to it must be published under AGPL before launch: that is a gated card for
-David when the client is ready.
+engine and server stay MIT). Our modified client is published under AGPL at
+https://github.com/MATRlX-codes/duel-exchange (exported with `tools/export-client-source.sh`; the client footer and the site footer link to it).
+Every client release that changes `client/` or the client tools needs a re-export + push to that repo.
 
 ## Step 1 (this commit): the allow-list copy, unchanged
 `tools/fetch-client.sh` copies only:

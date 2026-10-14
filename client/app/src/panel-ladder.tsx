@@ -13,6 +13,7 @@ import { PSPanelWrapper, PSRoomPanel } from "./panels";
 import { BattleLog } from "./battle-log";
 import { TL, toID, type ID } from "./battle-dex";
 import { SanitizedHTML } from "./panel-page";
+import { DX } from "./dx";
 
 type LadderData = {
 	formatid: ID,
@@ -97,13 +98,15 @@ export class LadderFormatRoom extends PSRoom {
 			const prefix = toID(this.searchValue);
 			PS.send(`/cmd laddertop ${this.format}${prefix ? ` ,${prefix}` : ''}`);
 		} else if (this.format !== undefined) {
-			Net(`https://duel-exchange.vercel.app${this.format}.json`)
+			// Duel Exchange: our game server's ladder (GET /api/ladder/<format>), in the shape this panel reads.
+			Net(`/api/ladder/${this.format}`)
 				.get({
 					query: {
 						prefix: toID(searchValue),
+						limit: 500,
 					},
 				})
-				.then(this.setLadderData)
+				.then(raw => this.setLadderData(DX.ladderJSON(this.format!, raw)))
 				.catch(this.setError);
 		}
 		this.update(null);
@@ -205,6 +208,7 @@ class LadderFormatPanel extends PSRoomPanel<LadderFormatRoom> {
 					<abbr title={TL`Glicko-1 rating system: rating±deviation (provisional if deviation>100)`}>Glicko-1</abbr>
 				</th>
 				{showCOIL && <th style={{ textAlign: 'center' }}>(none)</th>}
+				<th style={{ textAlign: 'center' }}><abbr title="Wins - losses (ties)">W-L</abbr></th>
 			</tr>
 			{room.ladderData.toplist.map((row, i) => <tr>
 				<td style={{ textAlign: 'right' }}>
@@ -221,9 +225,11 @@ class LadderFormatPanel extends PSRoomPanel<LadderFormatRoom> {
 				<td style={{ textAlign: 'center' }}>{Math.trunc(row.gxe)}<small>.{row.gxe.toFixed(1).slice(-1)}%</small></td>
 				<td style={{ textAlign: 'center' }}><em>{row.rpr.toFixed(0)}<small> &plusmn; {row.rprd.toFixed(0)}</small></em></td>
 				{showCOIL && <td style={{ textAlign: 'center' }}>{row.coil?.toFixed(0)}</td>}
+				<td style={{ textAlign: 'center' }} class="dx-wl">{row.w}-{row.l}{row.t ? <small> ({row.t})</small> : null}</td>
 			</tr>)}
-			{!room.ladderData.toplist.length && <tr><td colSpan={5}>
-				<em>{TL`No one has played any ranked games yet.`}</em>
+			{!room.ladderData.toplist.length && <tr><td colSpan={6} class="dx-empty">
+				<strong>No rated games in this format yet.</strong><br />
+				A game is rated when both players have a name. Games against the house bot never count.
 			</td></tr>}
 		</table>;
 	}
@@ -249,10 +255,10 @@ class LadderFormatPanel extends PSRoomPanel<LadderFormatRoom> {
 					</button>
 				</p>
 				<p>
-					<button class="button" data-href="ladder" data-target="replace">
+					<button class="button" onClick={() => room.requestLadderData(room.searchValue)}>
 						<i class="fa fa-refresh" aria-hidden></i> {TL`[Refresh]`}
-					</button> <a class="button" href="/view-seasonladder-gen9randombattle">
-						<i class="fa fa-trophy" aria-hidden></i> {TL`[Seasonal rankings]`}
+					</button> <a class="button dx-outline" href="https://duel-exchange.vercel.app/board" target="_blank" rel="noopener">
+						<i class="fa fa-trophy" aria-hidden></i> Weekly board
 					</a>
 					{this.renderSearch()}
 				</p>
@@ -299,16 +305,13 @@ class LadderListPanel extends PSRoomPanel {
 		const room = this.props.room;
 		return <PSPanelWrapper room={room}>
 			<div class="ladder pad">
-				<p>
-					<a class="button" href={`//${Config.routes.users}/`} target="_blank">
-						{TL`[Look up a specific user's rating]`}
-					</a>
-				</p>
-				<p>
-					<button data-href="view-ladderhelp" class="button">
-						<i class="fa fa-info-circle" aria-hidden></i> {TL`[How the ladder works]`}
-					</button>
-				</p>
+				<div class="dx-board dx-ladder-help">
+					<h3>How the ladder works</h3>
+					<p>Each format has its own ladder. Everyone starts at 1000 Elo and every rated game moves it. A game is rated when both players have a name; games against the house bot never count.</p>
+					<p>GXE is your estimated chance of beating a random player on that ladder. Glicko-1 shows rating &plusmn; deviation.</p>
+					<p><a class="button" href="https://duel-exchange.vercel.app/board" target="_blank" rel="noopener">Weekly board</a> {}
+						<a class="button" href="https://duel-exchange.vercel.app/rules" target="_blank" rel="noopener">Rules</a></p>
+				</div>
 				{this.renderList()}
 			</div>
 		</PSPanelWrapper>;
