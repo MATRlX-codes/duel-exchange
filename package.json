@@ -1,0 +1,8 @@
+{
+  "name": "duel-exchange-client",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "description": "Duel Exchange battle client: a modified fork of pokemon-showdown-client.",
+  "scripts": { "build": "tsx tools/build-client.ts" },
+  "devDependencies": { "esbuild": "^0.25.10", "tsx": "^4.19.0", "typescript": "^5.6.0", "@types/node": "^22.10.0" }
+}
