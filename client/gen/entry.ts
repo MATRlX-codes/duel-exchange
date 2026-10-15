@@ -26,6 +26,7 @@ import "../app/src/panel-teambuilder";
 import "../app/src/panel-teambuilder-team";
 import "../app/src/panel-teamdropdown";
 import "../app/src/panel-ladder";
+import "../app/src/panel-board";
 import "../app/src/panel-popups";
 import "../app/src/panel-page";
 import "../app/src/panel-resources";

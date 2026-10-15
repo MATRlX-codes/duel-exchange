@@ -762,8 +762,8 @@ class MainMenuPanel extends PSRoomPanel<MainMenuRoom> {
 					<div class="menugroup dx-board">
 						<h3>Duel Exchange</h3>
 						<p>Free to play, skill-based. Pick a format and press Battle. Nobody around? The house bot takes the game after 20 seconds (house games are never rated).</p>
-						<p>Rated games count for the ladder. The weekly board and payouts live on the site.</p>
-						<p><a class="button" href="https://duel-exchange.vercel.app/board" target="_blank" rel="noopener">Weekly board</a> {}
+						<p>Rated games count for the ladder and the weekly board: 10 rated games in 3 formats gets you on it. Prizes are paid on the site after launch.</p>
+						<p><a class="button" href="board">Weekly board + your week</a> {}
 							<a class="button" href="https://duel-exchange.vercel.app/rules" target="_blank" rel="noopener">Rules</a></p>
 						<p class="dx-note">Your login is kept on this device. To be paid prizes or play on another device, link a Solana wallet in Options (the gear, top right).</p>
 					</div>

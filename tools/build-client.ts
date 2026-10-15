@@ -28,7 +28,7 @@ const MODULES = [
 	"client-connection", "panels", "panel-mainmenu", "panel-rooms", "panel-topbar", "panel-chat", "panel-battle",
 	"battle", "battle-animations", "battle-tooltips", "battle-choices", "battle-sound",
 	"battle-dex-search", "battle-searchresults", "battle-team-editor", "panel-teambuilder", "panel-teambuilder-team",
-	"panel-teamdropdown", "panel-ladder", "panel-popups", "panel-page", "panel-resources", "panel-chat-tournament",
+	"panel-teamdropdown", "panel-ladder", "panel-board", "panel-popups", "panel-page", "panel-resources", "panel-chat-tournament",
 	"battle-animations-moves", "client-endload",
 ];
 
@@ -91,6 +91,30 @@ body { font-family: "Rubik", ui-sans-serif, system-ui, sans-serif; }
 .dx-board { background: #fff; border: 1px solid var(--dx-line); border-radius: 8px; padding: 12px 14px; }
 .dx-board h3 { margin: 0 0 6px; font-size: 16px; color: var(--dx-field); }
 .dx-board p, .dx-board .dx-note { margin: 6px 0; font-size: 13px; line-height: 1.45; color: var(--dx-ink); text-shadow: none; }
+/* Weekly board (M4 part 2): your week + the combined board. */
+.dx-boardpanel { max-width: 880px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.dx-boardpanel > * { min-width: 0; }
+.dx-boardpanel h3 small { font-weight: 400; margin-left: 6px; }
+.dx-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px 14px; margin: 8px 0; }
+.dx-week-fmt { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; font-size: 13px; }
+.dx-week-name { font-weight: 600; }
+.dx-week-n { font-variant-numeric: tabular-nums; color: #5f6f87; }
+.dx-week-fmt.done .dx-week-n { color: #1f7a4a; font-weight: 700; }
+.dx-week-bar { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: #e3eaf3; overflow: hidden; }
+.dx-week-bar span { display: block; height: 100%; background: var(--dx-field); border-radius: 3px; }
+.dx-week-fmt.done .dx-week-bar span { background: #2e9e63; }
+.dx-ok { color: #1f7a4a !important; }
+.dx-warn { color: #9a5b00 !important; }
+.dx-table-wrap { overflow-x: auto; margin: 6px 0; }
+.dx-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.dx-table th { text-align: right; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #6a7a92; padding: 6px 8px; border-bottom: 1px solid var(--dx-line); white-space: nowrap; }
+.dx-table td { text-align: right; padding: 6px 8px; border-bottom: 1px solid #e8eef6; white-space: nowrap; }
+.dx-table .l { text-align: left; }
+.dx-table .dim { color: #6a7a92; }
+.dx-table tr.me td { background: #eef4fd; }
+.dx-tag { margin-left: 6px; font-size: 10px; font-weight: 600; color: #8a6a2a; background: #fbf1dc; border: 1px solid #ecd9ae; border-radius: 3px; padding: 0 4px; }
+.dx-boardpanel .button { display: inline-block; margin: 2px 4px 2px 0; padding: 5px 10px; background: #fff; color: var(--dx-field); border: 1px solid var(--dx-field); border-radius: 4px; text-shadow: none; box-shadow: none; font-weight: 600; }
+.dx-boardpanel .button:hover { background: var(--dx-field); color: #fff; }
 /* Ladders (M3): panels like the rest of the client window, numbers in Rubik with tabular figures. */
 .ladder.pad { max-width: 880px; }
 .ladder.pad > p { margin: 0 0 10px; }
